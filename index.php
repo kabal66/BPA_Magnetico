@@ -18,7 +18,7 @@ class LayoutBpaMagnetico {
     
 
 
-    private $pathArquivoSaida = "/var/www/bpa/resultado/";
+    private $pathArquivoSaida = "/var/www/bpa/file_out/";
     
     public function getLinha() {
         return $this->linha;
