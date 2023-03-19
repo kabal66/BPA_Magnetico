@@ -3,9 +3,11 @@
 class LayoutBpaMagnetico {
 
     private $linha;
-    private $cbc_mvm = 202206; #Ano e mês de Processamento da produção
-    private $cbc_lin = 5; #Número de linhas do BPA gravadas. 
-    private $cbc_flh = 10; #Quantidades de folhas de BPA gravadas.
+
+    ########################################## Cabeçalho #######################################################    
+    private $cbc_mvm; #Ano e mês de Processamento da produção
+    private $cbc_lin; #Número de linhas do BPA gravadas. 
+    private $cbc_flh; #Quantidades de folhas de BPA gravadas.
     private $cbc_smt_vrf; #Campo de controle.DOMÍNIO [1111..2221]
     private $cbc_rsp; #Nome do órgão de origem responsável pela informação.
     private $cbc_sgl; #Sigla do órgão de origem responsável pela digitação. 
@@ -14,55 +16,24 @@ class LayoutBpaMagnetico {
     private $cbc_dst_in = "E"; #Indicador do órgão destino:
     private $cbc_versao; #Versão do sistema, informação livre, pode conter qualquer letra e numero.
     private $cbc_fim; #Correspondente aos caracteres CR - CHR(13) + LF - CHR(10), do padrão ASCII (.TXT), indicando fim do cabeçalho.
-
-    
-
-
-    private $pathArquivoSaida = "/var/www/bpa/file_out/";
-    
-    public function getLinha() {
-        return $this->linha;
-    }
-
-    public function cabecalho() {
-        // implementação do cabeçalho do layout
-        echo "<header>Este é o cabeçalho do layout BPA magnético</header>";
-
-        $this->$linha = $this->adicionarEspacoZero(01, 2, 'num'); //Indicador de linha do Header 
-
-        $this->$linha .= $this->adicionarEspacoZero("#BPA#", 5, ''); //Indicador de início do cabeçalho
-
-        $this->$linha .= $this->adicionarEspacoZero($this->cbc_mvm, 6, 'num'); //O campo deverá ser preenchido apenas com números. Formato AAAAMM
-
-        $this->$linha .= $this->adicionarEspacoZero($this->cbc_lin, 6, 'num'); //O campo deverá ser preenchido apenas com números. Adicionar zeros à esquerda.
-
-        $this->$linha .= $this->adicionarEspacoZero($this->cbc_flh, 6, 'num'); //O campo deverá ser preenchido apenas com números. Adicionar zeros à esquerda.
+    ##############################################################################################################
 
 
-        //$this->cbc_smt_vrf = ((($this->$prd_pa + $this->prd_qt) % 1111)+1111);
-        $this->$linha .= $this->adicionarEspacoZero($this->cbc_smt_vrf, 4, 'num'); //Veja observação no final deste arquivo.
+    ########################################## Consolidado ######################################################
+    private $prd_cnes; #Código do CNES. A última posição à direita é o dígito verificador.
+    private $prd_cmp; #Competência de realização do procedimento. 
+    private $prd_cbo; #Código do CBO do profissional 
+    private $prd_flh; #Número da folha do BPA. Domínio [001..999] 
+    private $prd_seq; #Número sequencial da linha dentro da folha do BPA. Domínio [01..20] 
+    private $prd_pa; #Código do procedimento ambulatorial. A última posição à direita é o dígito verificador.
+    private $prd_ldade; # Idade (0 a 130 anos)
+    private $prd_qt; #Quantidade de procedimentos produzidos.
+    private $prd_org; #Origem das informações:
+   // private $prd_fim; #Corresponde aos caracteres CR + CHR(13) + LF - CHR(10), do código ASCII(TXT)
+    ##############################################################################################################
 
-        $this->$linha .= $this->adicionarEspacoZero($this->cbc_rsp, 30, ''); //Adicionar espaço em branco a direita até completar total caracteres.
-
-        $this->$linha .= $this->adicionarEspacoZero($this->cbc_sgl, 6, ''); //Adicionar espaço em branco a direita até completar total caracteres.
-        
-        $this->$linha .= $this->adicionarEspacoZero($this->cbc_cgccpf, 14, 'num'); //O campo deverá ser preenchido apenas com números. Adicionar zeros à esquerda.
-
-        $this->$linha .= $this->adicionarEspacoZero($this->cbc_dst, 40, ''); //Adicionar espaço em branco a direita até completar total caracteres.
-
-        $this->$linha .= $this->adicionarEspacoZero($this->cbc_dst_in, 1, ''); // E - Estadual M - Municipal
-
-        $this->$linha .= $this->adicionarEspacoZero($this->cbc_versao, 10, ''); //Adicionar espaço em branco a direita até completar total caracteres.
-
-        $this->$linha .= $this->adicionarEspacoZero("\r\n", 2, ''); 
-
-
-        echo "->>".$this->$linha;
-      
-        return $this->$linha;
-
-    }
-
+     
+    ########################################## Individualizado ######################################################    
     private $prd_ident;
    # private $prd_cnes; #Código do CNES. A última posição à direita é o dígito verificador.
    # private $prd_cmp; #Competência de realização do procedimento.
@@ -100,11 +71,55 @@ class LayoutBpaMagnetico {
     private $prd_ddtel_pcnte; #Telefone do paciente
     private $prd_email_pcnte; #E-mail do paciente
     private $prd_ine; #Indentificação nacional de equipes 
+    ##############################################################################################################
+    
+
+    // Atenção, esse diretorio tem que ter permissão www-data 
+    private $pathArquivoSaida = "/var/www/bpa_magnetico/file_out/";
+    
+    public function getLinha() {
+        return $this->linha;
+    }
+
+    public function cabecalho() {
+        // implementação do cabeçalho do layout        
+
+        $this->$linha = $this->adicionarEspacoZero(01, 2, 'num'); //Indicador de linha do Header 
+
+        $this->$linha .= $this->adicionarEspacoZero("#BPA#", 5, ''); //Indicador de início do cabeçalho
+
+        $this->$linha .= $this->adicionarEspacoZero($this->cbc_mvm, 6, 'num'); //O campo deverá ser preenchido apenas com números. Formato AAAAMM
+
+        $this->$linha .= $this->adicionarEspacoZero($this->cbc_lin, 6, 'num'); //O campo deverá ser preenchido apenas com números. Adicionar zeros à esquerda.
+
+        $this->$linha .= $this->adicionarEspacoZero($this->cbc_flh, 6, 'num'); //O campo deverá ser preenchido apenas com números. Adicionar zeros à esquerda.
+
+
+        //$this->cbc_smt_vrf = ((($this->$prd_pa + $this->prd_qt) % 1111)+1111);
+        $this->$linha .= $this->adicionarEspacoZero($this->cbc_smt_vrf, 4, 'num'); //Veja observação no final deste arquivo.
+
+        $this->$linha .= $this->adicionarEspacoZero($this->cbc_rsp, 30, ''); //Adicionar espaço em branco a direita até completar total caracteres.
+
+        $this->$linha .= $this->adicionarEspacoZero($this->cbc_sgl, 6, ''); //Adicionar espaço em branco a direita até completar total caracteres.
+        
+        $this->$linha .= $this->adicionarEspacoZero($this->cbc_cgccpf, 14, 'num'); //O campo deverá ser preenchido apenas com números. Adicionar zeros à esquerda.
+
+        $this->$linha .= $this->adicionarEspacoZero($this->cbc_dst, 40, ''); //Adicionar espaço em branco a direita até completar total caracteres.
+
+        $this->$linha .= $this->adicionarEspacoZero($this->cbc_dst_in, 1, ''); // E - Estadual M - Municipal
+
+        $this->$linha .= $this->adicionarEspacoZero($this->cbc_versao, 10, ''); //Adicionar espaço em branco a direita até completar total caracteres.
+
+        $this->$linha .= $this->adicionarEspacoZero("\r\n", 2, ''); 
+      
+        return $this->$linha;
+    }
+
+    
   
     
     public function bpaIndividualizado() {
-        // implementação do corpo do layout
-        echo "<main>Este é o corpo do layout BPA magnético</main>";
+        // implementação do corpo do layout        
 
         $this->$linha = $this->adicionarEspacoZero($this->prd_ident, 2, 'num'); //O campo deverá ser preenchido apenas com números.        
         
@@ -147,7 +162,7 @@ class LayoutBpaMagnetico {
                                                                            // "MIN" -MATERNO INFANTIL
                                                                            // "PAC"-PROGRAMA AÇÃO COMUNITÁRIA
                                                                            // "SCL"-SISCOLO
-                                                                           // "EXT"-OUTROS SISTEMAS
+                                                                           //"EXT"-OUTROS SISTEMAS
 
         $this->$linha = $this->adicionarEspacoZero($this->prd_nmpac, 30, ''); //Adicionar espaço em branco a direita até completar total caracteres
 
@@ -206,16 +221,7 @@ class LayoutBpaMagnetico {
         $this->$linha = $this->adicionarEspacoZero("\r\n", 2, ''); // Corresponde aos caracteres CR + CHR(13) + LF - CHR(10), do código ASCII(TXT)                                                                               
     }
     
-    private $prd_cnes; #Código do CNES. A última posição à direita é o dígito verificador.
-    private $prd_cmp; #Competência de realização do procedimento. 
-    private $prd_cbo; #Código do CBO do profissional 
-    private $prd_flh; #Número da folha do BPA. Domínio [001..999] 
-    private $prd_seq; #Número sequencial da linha dentro da folha do BPA. Domínio [01..20] 
-    private $prd_pa; #Código do procedimento ambulatorial. A última posição à direita é o dígito verificador.
-    private $prd_ldade; # Idade (0 a 130 anos)
-    private $prd_qt; #Quantidade de procedimentos produzidos.
-    private $prd_org; #Origem das informações:
-   // private $prd_fim; #Corresponde aos caracteres CR + CHR(13) + LF - CHR(10), do código ASCII(TXT)
+
     
     public function bpaConsolidado() {
         // implementação do rodapé do layout
@@ -246,12 +252,7 @@ class LayoutBpaMagnetico {
                                                                              //"SCL"-SISCOLO 
                                                                              //"EXT"-OUTROS SISTEMAS
 
-        $this->$linha .= $this->adicionarEspacoZero("\r\n", 2, ''); //Adicionar espaço em branco a direita até completar total caracteres.
-
-
-       
-
-        echo "->>".$this->$linha;
+        $this->$linha .= $this->adicionarEspacoZero("\r\n", 2, ''); //Adicionar espaço em branco a direita até completar total caracteres. 
       
         return $this->$linha;
     }
@@ -266,9 +267,9 @@ class LayoutBpaMagnetico {
     }
 
     public function gravarNoArquivo($nomeArquivo, $conteudo) {
+
         // abre o arquivo para escrita, sobrescrevendo o conteúdo anterior, ou cria um arquivo novo caso não exista        
-    
-        $arquivo = fopen($this->pathArquivoSaida.$nomeArquivo, "w+");
+        $arquivo = fopen($this->pathArquivoSaida.$nomeArquivo, "a+");     
 
         // verifica se o arquivo foi aberto com sucesso
         if ($arquivo === false) {
@@ -283,6 +284,11 @@ class LayoutBpaMagnetico {
     }
 }
 
+
+## Exemplo 
 $layout = new LayoutBpaMagnetico();
 
-$layout->gravarNoArquivo("bpa.txt",  $layout->cabecalho());
+$layout->gravarNoArquivo("bpa" . "_" . date("Y-m-d") . "txt",  $layout->cabecalho());
+$layout->gravarNoArquivo("bpa" . "_" . date("Y-m-d") . "txt",  $layout->bpaConsolidado());
+$layout->gravarNoArquivo("bpa" . "_" . date("Y-m-d") . "txt",  $layout->bpaIndividualizado());
+##############
