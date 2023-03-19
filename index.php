@@ -288,7 +288,7 @@ class LayoutBpaMagnetico {
 ## Exemplo 
 $layout = new LayoutBpaMagnetico();
 
-$layout->gravarNoArquivo("bpa" . "_" . date("Y-m-d") . "txt",  $layout->cabecalho());
-$layout->gravarNoArquivo("bpa" . "_" . date("Y-m-d") . "txt",  $layout->bpaConsolidado());
-$layout->gravarNoArquivo("bpa" . "_" . date("Y-m-d") . "txt",  $layout->bpaIndividualizado());
+$layout->gravarNoArquivo("bpa" . "_" . date("Y-m-d") . ".txt",  $layout->cabecalho());
+$layout->gravarNoArquivo("bpa" . "_" . date("Y-m-d") . ".txt",  $layout->bpaConsolidado());
+$layout->gravarNoArquivo("bpa" . "_" . date("Y-m-d") . ".txt",  $layout->bpaIndividualizado());
 ##############
